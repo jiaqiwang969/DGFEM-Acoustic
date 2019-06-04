@@ -11,7 +11,7 @@
 int main(int argc, char **argv)
 {
     /**
-     * The DGarlekin solver requires 2 arguments
+     * The DGarlekin solver requires 2 argument
      * 1 : the Mesh file (.msh)
      * 2 : the config file (.conf)
      *
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     /**
      * Initialize the solution:
      */
-    std::vector<std::vector<double>> u(4,std::vector<double>(mesh.getNumNodes(), 0));
+    std::vector<std::vector<double>> u(5,std::vector<double>(mesh.getNumNodes(), 0));
     for(int i=0;i<config.initConditions.size();++i){
 	double x = config.initConditions[i][1];
 	double y = config.initConditions[i][2];

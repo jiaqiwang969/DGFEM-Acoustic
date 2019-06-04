@@ -393,26 +393,37 @@ Mesh::Mesh(std::string name, Config config) :  name(name), config(config) {
         if(m_fBC[f] == 0) {
             for(int g=0; g<m_fNumIntPts; ++g){
                 int i = f*m_fNumIntPts+g;
-                RKR[i].resize(16);
-                RKR[i][0] = 0.25*config.c0;
-                RKR[i][1] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,0);
-                RKR[i][2] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,1);
-                RKR[i][3] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,2);
+                RKR[i].resize(5*5);
+                RKR[i][0] = 0.25;
+                RKR[i][1] = 0.25*fNormal(f,g,0);
+                RKR[i][2] = 0.25*fNormal(f,g,1);
+                RKR[i][3] = 0.25*fNormal(f,g,2);
+                RKR[i][4] = 0.25;
 
-                RKR[i][4] = 0.25*fNormal(f,g,0)/config.rho0;
-                RKR[i][5] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,0);
-                RKR[i][6] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,1);
-                RKR[i][7] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,2);
+                RKR[i][5] = 0.25*fNormal(f,g,0);
+                RKR[i][6] = 0.25*fNormal(f,g,0)*fNormal(f,g,0);
+                RKR[i][7] = 0.25*fNormal(f,g,0)*fNormal(f,g,1);
+                RKR[i][8] = 0.25*fNormal(f,g,0)*fNormal(f,g,2);
+                RKR[i][9] = 0.25*fNormal(f,g,0);
 
-                RKR[i][8] = 0.25*fNormal(f,g,1)/config.rho0;
-                RKR[i][9] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,0);
-                RKR[i][10] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,1);
-                RKR[i][11] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,2);
+                RKR[i][10] = 0.25*fNormal(f,g,1);
+                RKR[i][11] = 0.25*fNormal(f,g,1)*fNormal(f,g,0);
+                RKR[i][12] = 0.25*fNormal(f,g,1)*fNormal(f,g,1);
+                RKR[i][13] = 0.25*fNormal(f,g,1)*fNormal(f,g,2);
+                RKR[i][14] = 0.25*fNormal(f,g,1);
 
-                RKR[i][12] = 0.25*fNormal(f,g,2)/config.rho0;
-                RKR[i][13] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,0);
-                RKR[i][14] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,1);
-                RKR[i][15] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,2);
+                RKR[i][15] = 0.25*fNormal(f,g,2);
+                RKR[i][16] = 0.25*fNormal(f,g,2)*fNormal(f,g,0);
+                RKR[i][17] = 0.25*fNormal(f,g,2)*fNormal(f,g,1);
+                RKR[i][18] = 0.25*fNormal(f,g,2)*fNormal(f,g,2);
+                RKR[i][19] = 0.25*fNormal(f,g,2);
+
+                RKR[i][20] = 0.25;
+                RKR[i][21] = 0.25*fNormal(f,g,0);
+                RKR[i][22] = 0.25*fNormal(f,g,1);
+                RKR[i][23] = 0.25*fNormal(f,g,2);
+                RKR[i][24] = 0.25;
+
             }
         }
     }
@@ -424,9 +435,9 @@ Mesh::Mesh(std::string name, Config config) :  name(name), config(config) {
      * Instantiate Ghost Elements and numerical flux storage.
      */
     m_fFlux.resize(m_fNum*m_fNumNodes);
-    uGhost = std::vector<std::vector<double>>(4,
+    uGhost = std::vector<std::vector<double>>(5,
              std::vector<double>(m_fNum*m_fNumIntPts));
-    FluxGhost = std::vector<std::vector<std::vector<double>>>(4,
+    FluxGhost = std::vector<std::vector<std::vector<double>>>(5,
                 std::vector<std::vector<double>>(m_fNum*m_fNumIntPts,
                 std::vector<double>(3)));
 
@@ -550,7 +561,7 @@ void Mesh::getElFlux(const int el, double* F) {
     std::fill(F, F+m_elNumNodes, 0);
     for(int f=0; f<m_fNumPerEl; ++f) {
         el == fNbrElId(elFId(el, f), 0) ? i = 0 : i = 1;
-        for(int nf=0; nf<m_fNumNodes; ++nf) {
+        for(int nf = 0; nf< m_fNumNodes; ++nf) {
             F[fNToElNId(elFId(el, f), nf, i)] += elFOrientation(el, f)*fFlux(elFId(el, f), nf);
         }
     }
@@ -565,31 +576,26 @@ void Mesh::getElFlux(const int el, double* F) {
  * @param v0 : mean flow speed (v0x,v0y,v0z)
  * @param c0 : speed of sound
  * @param rho0: mean flow density
+ * @param pc0: mean flow pressure
  */
+ //TODO: 修改FLUX with swirlflow solver
 void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vector<std::vector<double>>> &Flux,
-                      std::vector<double> &v0, double c0, double rho0) {
+                      std::vector<double> &v0, double c0, double rho0, double pc0) {
 
     for(int el=0; el<m_elNum; ++el){
         for(int n=0; n<m_elNumNodes; ++n) {
             int i = el*m_elNumNodes + n;
 
-            // Pressure flux
-            Flux[0][i] = {v0[0]*u[0][i] + rho0*c0*c0*u[1][i],
-                          v0[1]*u[0][i] + rho0*c0*c0*u[2][i],
-                          v0[2]*u[0][i] + rho0*c0*c0*u[3][i]};
+            // rho flux
+            Flux[0][i] = {u[1][i]                                ,                               u[2][i]  ,                                                               u[3][i]  ;
             // Vx
-            Flux[1][i] = {v0[0]*u[1][i] + u[0][i]/rho0,
-                          v0[1]*u[1][i],
-                          v0[2]*u[1][i]};
+            Flux[1][i] = {-v0[0]*v0[0]*u[0][i] + 2*v0[0]*u[1][i] + rho0*c0*c0/pc0*u[4][i],      -v0[0]*v0[1]*u[0][i] + v0[1]*u[1][i] + v0[0]*u[2][i],                     -v0[2]*v0[0]*u[0][i] + v0[2]*u[1][i]   + v0[0]*u[3][i]};
             // Vy
-            Flux[2][i] = {v0[0]*u[2][i],
-                          v0[1]*u[2][i] + u[0][i]/rho0,
-                          v0[2]*u[2][i]};
+            Flux[2][i] = {-v0[0]*v0[1]*u[0][i] + v0[1]*u[1][i]   + v0[0]*u[2][i],               -v0[1]*v0[1]*u[0][i] + 2*v0[1]*u[2][i] + rho0*c0*c0/pc0*u[4][i],          -v0[1]*v0[0]*u[0][i] + v0[2]*u[2][i]   + v0[0]*u[3][i]};
             // Vz
-            Flux[3][i] = {v0[0]*u[3][i],
-                          v0[1]*u[3][i],
-                          v0[2]*u[3][i] + u[0][i]/rho0};
-
+            Flux[3][i] = {-v0[2]*v0[0]*u[0][i] + v0[2]*u[1][i]   + v0[0]*u[3][i],               -v0[1]*v0[2]*u[0][i] + v0[2]u[2][i]+v0[1]u[3][i],                         -v0[2]*v0[2]*u[0][i] + 2*v0[2]*u[3][i] + rho0*c0*c0/pc0*u[4][i]};
+            // pressure flux
+            Flux[4][i] = {-pc0/rho0*v0[0]*u[0][i] + pc0/rho0*u[1][i] + v0[0]*u[4][i],           -pc0/rho0*v0[1]*u[0][i] + pc0/rho0*u[2][i]+ v0[1]*u[4][i],                -pc0/rho0*v0[2]*u[0][i] + pc0/rho0*u[3][i] + v0[2]*u[4][i]};
         }
 
         // Ghost elements
@@ -605,12 +611,15 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
                     uGhost[1][gId] = 0;
                     uGhost[2][gId] = 0;
                     uGhost[3][gId] = 0;
+                    uGhost[4][gId] = 0;
+
                     for(int n=0; n<m_fNumNodes; ++n) {
                         int nId = el*m_elNumNodes + fNToElNId(fId, n, 0);
                         uGhost[0][gId] += u[0][nId] * fBasisFct(g, n);
                         uGhost[1][gId] += u[1][nId] * fBasisFct(g, n);
                         uGhost[2][gId] += u[2][nId] * fBasisFct(g, n);
                         uGhost[3][gId] += u[3][nId] * fBasisFct(g, n);
+                        uGhost[4][gId] += u[4][nId] * fBasisFct(g, n);
                     }
 
                     if(m_fBC[fId] == 1) {
@@ -625,25 +634,20 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
                         uGhost[3][gId] -= dot*fNormal(fId,g,2);
 
                         // Flux at integration points
-                        // 1) Pressure flux
-                        FluxGhost[0][gId] = {v0[0]*uGhost[0][gId] + rho0*c0*c0*uGhost[1][gId],
-                                             v0[1]*uGhost[0][gId] + rho0*c0*c0*uGhost[2][gId],
-                                             v0[2]*uGhost[0][gId] + rho0*c0*c0*uGhost[3][gId]};
-                        // 2) Vx
-                        FluxGhost[1][gId] = {v0[0]*uGhost[1][gId] + uGhost[0][gId]/rho0,
-                                             v0[1]*uGhost[1][gId],
-                                             v0[2]*uGhost[1][gId]};
-                        // 3) Vy
-                        FluxGhost[2][gId] = {v0[0]*uGhost[2][gId],
-                                             v0[1]*uGhost[2][gId] + uGhost[0][gId]/rho0,
-                                             v0[2]*uGhost[2][gId]};
-                        // 4) Vz
-                        FluxGhost[3][gId] = {v0[0]*uGhost[3][gId],
-                                             v0[1]*uGhost[3][gId],
-                                             v0[2]*uGhost[3][gId] + uGhost[0][gId]/rho0};
+                        // 1）rho flux
+                        FluxGhost[0][gId] = {uGhost[1][i]                                ,                               uGhost[2][i]  ,                                                               uGhost[3][i]  ;
+                        // 2）Vx
+                        FluxGhost[1][gId] = {-v0[0]*v0[0]*uGhost[0][i] + 2*v0[0]*uGhost[1][i] + rho0*c0*c0/pc0*uGhost[4][i],      -v0[0]*v0[1]*uGhost[0][i] + v0[1]*uGhost[1][i] + v0[0]*uGhost[2][i],                     -v0[2]*v0[0]*uGhost[0][i] + v0[2]*uGhost[1][i]   + v0[0]*uGhost[3][i]};
+                        // 3）Vy
+                        FluxGhost[2][gId] = {-v0[0]*v0[1]*uGhost[0][i] + v0[1]*uGhost[1][i]   + v0[0]*uGhost[2][i],               -v0[1]*v0[1]*uGhost[0][i] + 2*v0[1]*uGhost[2][i] + rho0*c0*c0/pc0*uGhost[4][i],          -v0[1]*v0[0]*uGhost[0][i] + v0[2]*uGhost[2][i]   + v0[0]*uGhost[3][i]};
+                        // 4）Vz
+                        FluxGhost[3][gId] = {-v0[2]*v0[0]*uGhost[0][i] + v0[2]*uGhost[1][i]   + v0[0]*uGhost[3][i],               -v0[1]*v0[2]*uGhost[0][i] + v0[2][2][i]+v0[1]uGhost[3][i],                               -v0[2]*v0[2]*uGhost[0][i] + 2*v0[2]*uGhost[3][i] + rho0*c0*c0/pc0*uGhost[4][i]};
+                        // 5）pressure flux
+                        FluxGhost[4][gId] = {-pc0/rho0*v0[0]*uGhost[0][i] + pc0/rho0*uGhost[1][i] + v0[0]*uGhost[4][i],           -pc0/rho0*v0[1]*uGhost[0][i] + pc0/rho0*uGhost[2][i]+ v0[1]*uGhost[4][i],                -pc0/rho0*v0[2]*uGhost[0][i] + pc0/rho0*uGhost[3][i] + v0[2]*uGhost[4][i]};
+        
 
                         // Project Flux on the normal
-                        for(int eq=0; eq<4; ++eq)
+                        for(int eq=0; eq<5; ++eq)
                             FluxGhost[eq][gId][0] = eigen::dot(&fNormal(fId, g), &FluxGhost[eq][gId][0], m_Dim);
                     }
                     else {
@@ -652,19 +656,32 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
                         FluxGhost[0][gId][0] = RKR[gId][0]*uGhost[0][gId] +
                                                RKR[gId][1]*uGhost[1][gId] +
                                                RKR[gId][2]*uGhost[2][gId] +
-                                               RKR[gId][3]*uGhost[3][gId];
-                        FluxGhost[1][gId][0] = RKR[gId][4]*uGhost[0][gId] +
-                                               RKR[gId][5]*uGhost[1][gId] +
-                                               RKR[gId][6]*uGhost[2][gId] +
-                                               RKR[gId][7]*uGhost[3][gId];
-                        FluxGhost[2][gId][0] = RKR[gId][8]*uGhost[0][gId] +
-                                               RKR[gId][9]*uGhost[1][gId] +
-                                               RKR[gId][10]*uGhost[2][gId] +
-                                               RKR[gId][11]*uGhost[3][gId];
-                        FluxGhost[3][gId][0] = RKR[gId][12]*uGhost[0][gId] +
-                                               RKR[gId][13]*uGhost[1][gId] +
-                                               RKR[gId][14]*uGhost[2][gId] +
-                                               RKR[gId][15]*uGhost[3][gId];
+                                               RKR[gId][3]*uGhost[3][gId] +
+                                               RKR[gId][4]*uGhost[4][gId] ;
+
+                        FluxGhost[1][gId][0] = RKR[gId][5]*uGhost[0][gId] +
+                                               RKR[gId][6]*uGhost[1][gId] +
+                                               RKR[gId][7]*uGhost[2][gId] +
+                                               RKR[gId][8]*uGhost[3][gId] +
+                                               RKR[gId][9]*uGhost[4][gId];
+
+                        FluxGhost[2][gId][0] = RKR[gId][10]*uGhost[0][gId] +
+                                               RKR[gId][11]*uGhost[1][gId] +
+                                               RKR[gId][12]*uGhost[2][gId] +
+                                               RKR[gId][13]*uGhost[3][gId] +
+                                               RKR[gId][14]*uGhost[4][gId];
+
+                        FluxGhost[3][gId][0] = RKR[gId][15]*uGhost[0][gId] +
+                                               RKR[gId][16]*uGhost[1][gId] +
+                                               RKR[gId][17]*uGhost[2][gId] +
+                                               RKR[gId][18]*uGhost[3][gId] +
+                                               RKR[gId][19]*uGhost[4][gId] ;
+
+                        FluxGhost[4][gId][0] = RKR[gId][20]*uGhost[0][gId] +
+                                               RKR[gId][21]*uGhost[1][gId] +
+                                               RKR[gId][22]*uGhost[2][gId] +
+                                               RKR[gId][23]*uGhost[3][gId] +
+                                               RKR[gId][24]*uGhost[4][gId] ;                                               
                     }
                 }
             }

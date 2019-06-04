@@ -67,16 +67,16 @@ export DYLD_LIBRARY_PATH=${PWD}/lib:${DYLD_LIBRARY_PATH}
 cd ../
 
 
-if [ ! -d "eigen-eigen-323c052e1731" ]; then
+if [ ! -d "eigen-3.3.7" ]; then
 	echo "Eigen not found, installing...";
-  	wget http://bitbucket.org/eigen/eigen/get/3.3.7.tar.gz
- 	tar -xf 3.3.7.tar.gz
- 	rm -rf 3.3.7.tar.gz
+  	wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
+ 	tar -xf eigen-3.3.7.tar.gz
+ 	rm -rf eigen-3.3.7.tar.gz
 	echo "Eigen installed."
 else
 	echo "Eigen found."
 fi
-cd eigen-eigen-323c052e1731/
+cd eigen-3.3.7/
 export INCLUDE=${PWD}:${INCLUDE}
 cd ../
 
@@ -87,7 +87,7 @@ rm -rf build/
 mkdir build
 
 cd build/
-cmake ../ -DCMAKE_BUILD_TYPE=Release  -G "Unix Makefiles" 
+cmake ../ -DCMAKE_BUILD_TYPE=Debug  -G "Unix Makefiles" 
 make -j4
 if [ $? -eq 0 ]; then
     	echo "[end] Everything went successfully.";

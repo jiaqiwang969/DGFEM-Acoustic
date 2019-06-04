@@ -35,7 +35,7 @@ namespace solver {
     void numStep(Mesh &mesh, Config config, std::vector<std::vector<double>> &u,
                  std::vector<std::vector<std::vector<double>>> &Flux, double beta){
 
-        for(int eq=0; eq<4; ++eq){
+        for(int eq=0; eq<5; ++eq){
             mesh.precomputeFlux(u[eq], Flux[eq], eq);
 
             #pragma omp parallel for schedule(static) firstprivate(elFlux, elStiffvector) num_threads(config.numThreads)
@@ -66,7 +66,7 @@ namespace solver {
         elTags = std::vector<int>(&mesh.elTag(0), &mesh.elTag(0)+mesh.getElNum());
         elFlux.resize(elNumNodes);
         elStiffvector.resize(elNumNodes);
-        Flux = std::vector<std::vector<std::vector<double>>>(4,
+        Flux = std::vector<std::vector<std::vector<double>>>(5,
                std::vector<std::vector<double>>(mesh.getNumNodes(),
                std::vector<double>(3)));
 
@@ -115,11 +115,12 @@ namespace solver {
                 for(int el = 0; el < mesh.getElNum(); ++el) {
                     for(int n = 0; n < mesh.getElNumNodes(); ++n) {
                         int elN = el*elNumNodes+n;
-                        g_p[el][n] = u[0][elN];
-                        g_rho[el][n] = u[0][elN]/(config.c0*config.c0);
+                        g_rho[el][n] = u[0][elN];
                         g_v[el][3*n+0] = u[1][elN];
                         g_v[el][3*n+1] = u[2][elN];
                         g_v[el][3*n+2] = u[3][elN];
+                        g_p[el][n] = u[4][elN];
+
                     }
                 }
                 gmsh::view::addModelData(gp_viewTag, step, g_names[0], "ElementNodeData", elTags, g_p, t, 1);
@@ -149,7 +150,7 @@ namespace solver {
             /**
              * First Order Euler
              */
-            mesh.updateFlux(u, Flux, config.v0, config.c0, config.rho0);
+            mesh.updateFlux(u, Flux, config.v0, config.c0, config.rho0,config.pc0);
             numStep(mesh, config, u, Flux, 1);
 
         }
@@ -177,7 +178,7 @@ namespace solver {
         elFlux.resize(elNumNodes);
         elStiffvector.resize(elNumNodes);
         std::vector<std::vector<double>> k1, k2, k3, k4;
-        Flux = std::vector<std::vector<std::vector<double>>>(4,
+        Flux = std::vector<std::vector<std::vector<double>>>(5,
                std::vector<std::vector<double>>(mesh.getNumNodes(),
                std::vector<double>(3)));
 
@@ -226,11 +227,11 @@ namespace solver {
                 for(int el = 0; el < mesh.getElNum(); ++el) {
                     for(int n = 0; n < mesh.getElNumNodes(); ++n) {
                         int elN = el*elNumNodes+n;
-                        g_p[el][n] = u[0][elN];
-                        g_rho[el][n] = u[0][elN]/(config.c0*config.c0);
+                        g_rho[el][n] = u[0][elN];
                         g_v[el][3*n+0] = u[1][elN];
                         g_v[el][3*n+1] = u[2][elN];
                         g_v[el][3*n+2] = u[3][elN];
+                        g_p[el][n] = u[4][elN];
                     }
                 }
                 gmsh::view::addModelData(gp_viewTag, step, g_names[0], "ElementNodeData", elTags, g_p, t, 1);
@@ -260,22 +261,22 @@ namespace solver {
              */
             k1 = k2 = k3 = k4 = u;
             /** [1] Step R-K */
-            mesh.updateFlux(k1, Flux, config.v0, config.c0, config.rho0);
+            mesh.updateFlux(k1, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
             numStep(mesh, config, k1, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k2[eq].data(), k1[eq].data(), 0.5, numNodes);
             /** [2] Step R-K */
-            mesh.updateFlux(k2, Flux, config.v0, config.c0, config.rho0);
+            mesh.updateFlux(k2, Flux, config.v0, config.c0, config.rho0,,config.pc0);
             numStep(mesh, config, k2, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k3[eq].data(), k2[eq].data(), 0.5, numNodes);
             /** [3] Step R-K */
-            mesh.updateFlux(k3, Flux, config.v0, config.c0, config.rho0);
+            mesh.updateFlux(k3, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
             numStep(mesh, config, k3, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k4[eq].data(), k3[eq].data(), 1, numNodes);
             /** [4] Step R-K */
-            mesh.updateFlux(k4, Flux, config.v0, config.c0, config.rho0);
+            mesh.updateFlux(k4, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
             numStep(mesh, config, k4, Flux, 0);
             /** Concat results of R-K iterations */
             for(int eq=0; eq<u.size(); ++eq){

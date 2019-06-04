@@ -61,6 +61,7 @@ namespace config{
             config.v0[2] = std::stod(configMap["v0_z"]);
             config.rho0 = std::stod(configMap["rho0"]);
             config.c0 = std::stod(configMap["c0"]);
+            config.pc0 = std::stod(configMap["pc0"])
 
             for(std::map<std::string, std::string>::iterator iter = configMap.begin(); iter != configMap.end(); ++iter) {
                 std::string key = iter->first;
