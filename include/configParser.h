@@ -26,7 +26,7 @@ struct Config {
     std::vector<double> v0 = {0, 0, 0};
     double rho0 = 1;
     double c0 = 1;
-
+    double pc0=1;
     // Number of threads
     int numThreads = 1;
 

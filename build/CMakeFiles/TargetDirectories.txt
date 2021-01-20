@@ -1,0 +1,5 @@
+/jiaqiwang969/DGFEM-Acoustic/build/CMakeFiles/rebuild_cache.dir
+/jiaqiwang969/DGFEM-Acoustic/build/CMakeFiles/edit_cache.dir
+/jiaqiwang969/DGFEM-Acoustic/build/src/CMakeFiles/rebuild_cache.dir
+/jiaqiwang969/DGFEM-Acoustic/build/src/CMakeFiles/dgalerkin.dir
+/jiaqiwang969/DGFEM-Acoustic/build/src/CMakeFiles/edit_cache.dir

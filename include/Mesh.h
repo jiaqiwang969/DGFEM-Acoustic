@@ -134,7 +134,7 @@ public:
     void getElStiffVector(int el, std::vector<std::vector<double>> &Flux,
                           std::vector<double> &u, double *elStiffVector);
     void updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vector<std::vector<double>>> &Flux,
-                    std::vector<double> &v0, double c0, double rho0);
+                    std::vector<double> &v0, double c0, double rho0, double pc0);
 
 private:
     std::string name;                               // Associated mesh file string

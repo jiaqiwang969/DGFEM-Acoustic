@@ -87,7 +87,7 @@ rm -rf build/
 mkdir build
 
 cd build/
-cmake ../ -DCMAKE_BUILD_TYPE=Debug  -G "Unix Makefiles" 
+cmake ../ -DCMAKE_BUILD_TYPE=Release  -G "Unix Makefiles" 
 make -j4
 if [ $? -eq 0 ]; then
     	echo "[end] Everything went successfully.";

@@ -261,22 +261,22 @@ namespace solver {
              */
             k1 = k2 = k3 = k4 = u;
             /** [1] Step R-K */
-            mesh.updateFlux(k1, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
+            mesh.updateFlux(k1, Flux, config.v0, config.c0, config.rho0 ,config.pc0);
             numStep(mesh, config, k1, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k2[eq].data(), k1[eq].data(), 0.5, numNodes);
             /** [2] Step R-K */
-            mesh.updateFlux(k2, Flux, config.v0, config.c0, config.rho0,,config.pc0);
+            mesh.updateFlux(k2, Flux, config.v0, config.c0, config.rho0,config.pc0);
             numStep(mesh, config, k2, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k3[eq].data(), k2[eq].data(), 0.5, numNodes);
             /** [3] Step R-K */
-            mesh.updateFlux(k3, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
+            mesh.updateFlux(k3, Flux, config.v0, config.c0, config.rho0, config.pc0);
             numStep(mesh, config, k3, Flux, 0);
             for(int eq=0; eq<u.size(); ++eq)
                 eigen::plusTimes(k4[eq].data(), k3[eq].data(), 1, numNodes);
             /** [4] Step R-K */
-            mesh.updateFlux(k4, Flux, config.v0, config.c0, config.rho0, ,config.pc0);
+            mesh.updateFlux(k4, Flux, config.v0, config.c0, config.rho0, config.pc0);
             numStep(mesh, config, k4, Flux, 0);
             /** Concat results of R-K iterations */
             for(int eq=0; eq<u.size(); ++eq){
