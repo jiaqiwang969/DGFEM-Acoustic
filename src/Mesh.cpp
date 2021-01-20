@@ -506,7 +506,7 @@ void Mesh::getElStiffVector(const int el, std::vector<std::vector<double>> &Flux
  *
  * @param Flux double array : physical flux
  * @param u double array : solution at the node
- * @param eq : equation id (0 = pressure, 1 = velocity x, 2= vy, 3= vz)
+ * @param eq : equation id (0 = rho, 1 = velocity x, 2= vy, 3= vz, 4=pressure)
  */
 void Mesh::precomputeFlux(std::vector<double> &u, std::vector<std::vector<double>> &Flux, int eq) {
 
@@ -591,7 +591,7 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
             // Vx
             Flux[1][i] = {-v0[0]*v0[0]*u[0][i] + 2*v0[0]*u[1][i] + rho0*c0*c0/pc0*u[4][i],      -v0[0]*v0[1]*u[0][i] + v0[1]*u[1][i] + v0[0]*u[2][i],                     -v0[2]*v0[0]*u[0][i] + v0[2]*u[1][i]   + v0[0]*u[3][i]};
             // Vy
-            Flux[2][i] = {-v0[0]*v0[1]*u[0][i] + v0[1]*u[1][i]   + v0[0]*u[2][i],               -v0[1]*v0[1]*u[0][i] + 2*v0[1]*u[2][i] + rho0*c0*c0/pc0*u[4][i],          -v0[1]*v0[0]*u[0][i] + v0[2]*u[2][i]   + v0[0]*u[3][i]};
+            Flux[2][i] = {-v0[0]*v0[1]*u[0][i] + v0[1]*u[1][i]   + v0[0]*u[2][i],               -v0[1]*v0[1]*u[0][i] + 2*v0[1]*u[2][i] + rho0*c0*c0/pc0*u[4][i],          -v0[1]*v0[0]*u[0][i] + v0[2]*u[2][i]   + v0[1]*u[3][i]};
             // Vz
             Flux[3][i] = {-v0[2]*v0[0]*u[0][i] + v0[2]*u[1][i]   + v0[0]*u[3][i],               -v0[1]*v0[2]*u[0][i] + v0[2]*u[2][i]+v0[1]*u[3][i],                         -v0[2]*v0[2]*u[0][i] + 2*v0[2]*u[3][i] + rho0*c0*c0/pc0*u[4][i]};
             // pressure flux
@@ -634,15 +634,15 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
                         uGhost[3][gId] -= dot*fNormal(fId,g,2);
 
                         // Flux at integration points
-                        // 1) ‰rho flux
+                        // 1) ï¿½rho flux
                         FluxGhost[0][gId] = {uGhost[1][gId]                                ,                               uGhost[2][gId]  ,                                                               uGhost[3][gId]  };
-                        // 2) ‰Vx
+                        // 2) ï¿½Vx
                         FluxGhost[1][gId] = {-v0[0]*v0[0]*uGhost[0][gId] + 2*v0[0]*uGhost[1][gId] + rho0*c0*c0/pc0*uGhost[4][gId],      -v0[0]*v0[1]*uGhost[0][gId] + v0[1]*uGhost[1][gId] + v0[0]*uGhost[2][gId],                     -v0[2]*v0[0]*uGhost[0][gId] + v0[2]*uGhost[1][gId]   + v0[0]*uGhost[3][gId]};
-                        // 3) ‰Vy
-                        FluxGhost[2][gId] = {-v0[0]*v0[1]*uGhost[0][gId] + v0[1]*uGhost[1][gId]   + v0[0]*uGhost[2][gId],               -v0[1]*v0[1]*uGhost[0][gId] + 2*v0[1]*uGhost[2][gId] + rho0*c0*c0/pc0*uGhost[4][gId],          -v0[1]*v0[0]*uGhost[0][gId] + v0[2]*uGhost[2][gId]   + v0[0]*uGhost[3][gId]};
-                        // 4) ‰Vz
+                        // 3) ï¿½Vy
+                        FluxGhost[2][gId] = {-v0[0]*v0[1]*uGhost[0][gId] + v0[1]*uGhost[1][gId]   + v0[0]*uGhost[2][gId],               -v0[1]*v0[1]*uGhost[0][gId] + 2*v0[1]*uGhost[2][gId] + rho0*c0*c0/pc0*uGhost[4][gId],          -v0[1]*v0[0]*uGhost[0][gId] + v0[2]*uGhost[2][gId]   + v0[1]*uGhost[3][gId]};
+                        // 4) ï¿½Vz
                         FluxGhost[3][gId] = {-v0[2]*v0[0]*uGhost[0][gId] + v0[2]*uGhost[1][gId]   + v0[0]*uGhost[3][gId],               -v0[1]*v0[2]*uGhost[0][gId] + v0[2]*uGhost[2][gId]+v0[1]*uGhost[3][gId],                               -v0[2]*v0[2]*uGhost[0][gId] + 2*v0[2]*uGhost[3][gId] + rho0*c0*c0/pc0*uGhost[4][gId]};
-                        // 5) ‰pressure flux
+                        // 5) ï¿½pressure flux
                         FluxGhost[4][gId] = {-pc0/rho0*v0[0]*uGhost[0][gId] + pc0/rho0*uGhost[1][gId] + v0[0]*uGhost[4][gId],           -pc0/rho0*v0[1]*uGhost[0][gId] + pc0/rho0*uGhost[2][gId]+ v0[1]*uGhost[4][gId],                -pc0/rho0*v0[2]*uGhost[0][gId] + pc0/rho0*uGhost[3][gId] + v0[2]*uGhost[4][gId]};
         
 
