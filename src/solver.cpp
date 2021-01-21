@@ -144,7 +144,8 @@ namespace solver {
                 double duration = config.sources[src][8];
                 if(t<duration)
                     for(int n=0; n<srcIndices[src].size(); ++n)
-                        u[0][srcIndices[src][n]] =  amp*sin(2*M_PI*freq*t+phase);
+                        u[4][srcIndices[src][n]] =  amp*sin(2*M_PI*freq*t+phase);
+                        u[0][srcIndices[src][n]] =  u[4][srcIndices[src][n]]/c0/c0;
             }
 
             /**
@@ -253,7 +254,9 @@ namespace solver {
                 double duration = config.sources[src][8];
                 if(t<duration)
                     for(int n=0; n<srcIndices[src].size(); ++n)
-                        u[0][srcIndices[src][n]] =  amp*sin(2*M_PI*freq*t+phase);
+                        u[4][srcIndices[src][n]] =  amp*sin(2*M_PI*freq*t+phase);
+                        u[0][srcIndices[src][n]] =  u[4][srcIndices[src][n]]/c0/c0;
+
             }
 
             /**

@@ -43,9 +43,11 @@ int main(int argc, char **argv)
         for(int n=0; n<mesh.getNumNodes(); n++) {
             std::vector<double> coord, paramCoord;
             gmsh::model::mesh::getNode(mesh.getElNodeTags()[n], coord, paramCoord);
-	    u[0][n] += amp*exp(-((coord[0] - x) * (coord[0] - x) +
+	    u[4][n] += amp*exp(-((coord[0] - x) * (coord[0] - x) +
 		                 (coord[1]- y) * (coord[1] - y) +
 		                 (coord[2]- z) * (coord[2]- z))/size);
+        u[0][n] =  u[4][n]/c0/c0;              
+
         }
     }
    
