@@ -26,12 +26,9 @@ struct Config {
     std::vector<double> v0 = {0, 0, 0};
     double rho0 = 1;
     double c0 = 1;
-<<<<<<< Updated upstream
     double pc0=1;
-=======
-    double pc0 =1;
 
->>>>>>> Stashed changes
+
     // Number of threads
     int numThreads = 1;
 
