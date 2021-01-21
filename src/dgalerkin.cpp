@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	    u[4][n] += amp*exp(-((coord[0] - x) * (coord[0] - x) +
 		                 (coord[1]- y) * (coord[1] - y) +
 		                 (coord[2]- z) * (coord[2]- z))/size);
-        u[0][n] =  u[4][n]/c0/c0;              
+        u[0][n] =  u[4][n]/config.c0/config.c0;              
 
         }
     }
