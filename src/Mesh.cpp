@@ -393,36 +393,26 @@ Mesh::Mesh(std::string name, Config config) :  name(name), config(config) {
         if(m_fBC[f] == 0) {
             for(int g=0; g<m_fNumIntPts; ++g){
                 int i = f*m_fNumIntPts+g;
-                RKR[i].resize(5*5);
-                RKR[i][0] = 0.25;
-                RKR[i][1] = 0.25*fNormal(f,g,0);
-                RKR[i][2] = 0.25*fNormal(f,g,1);
-                RKR[i][3] = 0.25*fNormal(f,g,2);
-                RKR[i][4] = 0.25;
+                RKR[i].resize(16);
+                RKR[i][0] = 0.25*config.c0;
+                RKR[i][1] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,0);
+                RKR[i][2] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,1);
+                RKR[i][3] = 0.25*config.c0*config.c0*config.rho0*fNormal(f,g,2);
 
-                RKR[i][5] = 0.25*fNormal(f,g,0);
-                RKR[i][6] = 0.25*fNormal(f,g,0)*fNormal(f,g,0);
-                RKR[i][7] = 0.25*fNormal(f,g,0)*fNormal(f,g,1);
-                RKR[i][8] = 0.25*fNormal(f,g,0)*fNormal(f,g,2);
-                RKR[i][9] = 0.25*fNormal(f,g,0);
+                RKR[i][4] = 0.25*fNormal(f,g,0)/config.rho0;
+                RKR[i][5] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,0);
+                RKR[i][6] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,1);
+                RKR[i][7] = 0.25*config.c0*fNormal(f,g,0)*fNormal(f,g,2);
 
-                RKR[i][10] = 0.25*fNormal(f,g,1);
-                RKR[i][11] = 0.25*fNormal(f,g,1)*fNormal(f,g,0);
-                RKR[i][12] = 0.25*fNormal(f,g,1)*fNormal(f,g,1);
-                RKR[i][13] = 0.25*fNormal(f,g,1)*fNormal(f,g,2);
-                RKR[i][14] = 0.25*fNormal(f,g,1);
+                RKR[i][8] = 0.25*fNormal(f,g,1)/config.rho0;
+                RKR[i][9] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,0);
+                RKR[i][10] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,1);
+                RKR[i][11] = 0.25*config.c0*fNormal(f,g,1)*fNormal(f,g,2);
 
-                RKR[i][15] = 0.25*fNormal(f,g,2);
-                RKR[i][16] = 0.25*fNormal(f,g,2)*fNormal(f,g,0);
-                RKR[i][17] = 0.25*fNormal(f,g,2)*fNormal(f,g,1);
-                RKR[i][18] = 0.25*fNormal(f,g,2)*fNormal(f,g,2);
-                RKR[i][19] = 0.25*fNormal(f,g,2);
-
-                RKR[i][20] = 0.25;
-                RKR[i][21] = 0.25*fNormal(f,g,0);
-                RKR[i][22] = 0.25*fNormal(f,g,1);
-                RKR[i][23] = 0.25*fNormal(f,g,2);
-                RKR[i][24] = 0.25;
+                RKR[i][12] = 0.25*fNormal(f,g,2)/config.rho0;
+                RKR[i][13] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,0);
+                RKR[i][14] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,1);
+                RKR[i][15] = 0.25*config.c0*fNormal(f,g,2)*fNormal(f,g,2);
 
             }
         }
@@ -653,35 +643,27 @@ void Mesh::updateFlux(std::vector<std::vector<double>> &u, std::vector<std::vect
                     else {
                         // Absorbing boundary conditions
                         // /!\ Flux already projected on normal,
-                        FluxGhost[0][gId][0] = RKR[gId][0]*uGhost[0][gId] +
+                        FluxGhost[4][gId][0] = RKR[gId][0]*uGhost[4][gId] +
                                                RKR[gId][1]*uGhost[1][gId] +
                                                RKR[gId][2]*uGhost[2][gId] +
-                                               RKR[gId][3]*uGhost[3][gId] +
-                                               RKR[gId][4]*uGhost[4][gId] ;
+                                               RKR[gId][3]*uGhost[3][gId]  ;
 
-                        FluxGhost[1][gId][0] = RKR[gId][5]*uGhost[0][gId] +
-                                               RKR[gId][6]*uGhost[1][gId] +
-                                               RKR[gId][7]*uGhost[2][gId] +
-                                               RKR[gId][8]*uGhost[3][gId] +
-                                               RKR[gId][9]*uGhost[4][gId];
+                        FluxGhost[1][gId][0] = RKR[gId][4]*uGhost[4][gId] +
+                                               RKR[gId][5]*uGhost[1][gId] +
+                                               RKR[gId][6]*uGhost[2][gId] +
+                                               RKR[gId][7]*uGhost[3][gId] ;
 
-                        FluxGhost[2][gId][0] = RKR[gId][10]*uGhost[0][gId] +
-                                               RKR[gId][11]*uGhost[1][gId] +
-                                               RKR[gId][12]*uGhost[2][gId] +
-                                               RKR[gId][13]*uGhost[3][gId] +
-                                               RKR[gId][14]*uGhost[4][gId];
+                        FluxGhost[2][gId][0] = RKR[gId][8]*uGhost[4][gId] +
+                                               RKR[gId][9]*uGhost[1][gId] +
+                                               RKR[gId][10]*uGhost[2][gId] +
+                                               RKR[gId][11]*uGhost[3][gId] ;
 
-                        FluxGhost[3][gId][0] = RKR[gId][15]*uGhost[0][gId] +
-                                               RKR[gId][16]*uGhost[1][gId] +
-                                               RKR[gId][17]*uGhost[2][gId] +
-                                               RKR[gId][18]*uGhost[3][gId] +
-                                               RKR[gId][19]*uGhost[4][gId] ;
-
-                        FluxGhost[4][gId][0] = RKR[gId][20]*uGhost[0][gId] +
-                                               RKR[gId][21]*uGhost[1][gId] +
-                                               RKR[gId][22]*uGhost[2][gId] +
-                                               RKR[gId][23]*uGhost[3][gId] +
-                                               RKR[gId][24]*uGhost[4][gId] ;                                               
+                        FluxGhost[3][gId][0] = RKR[gId][12]*uGhost[4][gId] +
+                                               RKR[gId][13]*uGhost[1][gId] +
+                                               RKR[gId][14]*uGhost[2][gId] +
+                                               RKR[gId][15]*uGhost[3][gId] ;
+                        FluxGhost[0][gId][0] = FluxGhost[4][gId][0]/config.c0/config.c0;
+                                            
                     }
                 }
             }
