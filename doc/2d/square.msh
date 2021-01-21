@@ -3,7 +3,7 @@ $MeshFormat
 $EndMeshFormat
 $PhysicalNames
 2
-1 1 "Reflecting"
+1 1 "Absorbing"
 2 2 "Domain"
 $EndPhysicalNames
 $Entities
