@@ -8767,3 +8767,15 @@ $Elements
 5649 2100 2172 2159 
 5650 2159 2172 1581 
 $EndElements
+//+
+SetFactory("OpenCASCADE");
+//+
+SetFactory("OpenCASCADE");
+//+
+SetFactory("OpenCASCADE");
+//+
+SetFactory("OpenCASCADE");
+//+
+SetFactory("Built-in");
+//+
+SetFactory("OpenCASCADE");
