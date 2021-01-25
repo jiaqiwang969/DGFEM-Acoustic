@@ -100,3 +100,5 @@ Mesh.MeshSizeMax = 20;
 Physical Surface("Absorbing") = {76};
 //+
 //Physical Surface(158) = {1};
+Physical Volume("Domain") = {1:14:1};
+
